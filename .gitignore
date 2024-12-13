@@ -5,9 +5,12 @@ node_modules/
 
 # Expo
 .expo/
+.expo-shared/
 dist/
 web-build/
 expo-env.d.ts
+android/
+ios/
 
 # Native
 *.orig.*
@@ -19,8 +22,10 @@ expo-env.d.ts
 
 # Metro
 .metro-health-check*
+.expo/packager-info.json
+.expo/settings.json
 
-# debug
+# Debug logs
 npm-debug.*
 yarn-debug.*
 yarn-error.*
@@ -29,10 +34,43 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
-.env*.local
+# Windows
+Thumbs.db
+Desktop.ini
 
-# typescript
+# Local environment files
+.env*
+!.env.example
+
+# TypeScript
 *.tsbuildinfo
 
-app-example
+# IDE specific
+.vscode/
+.idea/
+
+# Temporary files
+*.swp
+*.swo
+*.tmp
+*.log
+*.cache
+*.log.*
+*.lock
+
+# Test coverage
+/coverage/
+
+# Generated assets (customize as needed)
+assets/*
+!assets/icon.png
+!assets/splash.png
+
+# Expo credentials
+*.jks
+*.p12
+*.pem
+*.key
+
+# Temporary example app (if this is not intentional)
+app-example/

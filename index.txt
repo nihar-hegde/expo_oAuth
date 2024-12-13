@@ -1,0 +1,152 @@
+import supabase from "@/utils/supabase";
+import { useState, useEffect } from "react";
+import {
+  View,
+  TextInput,
+  FlatList,
+  Text,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
+
+type Todo = {
+  id: string;
+  title: string;
+  is_complete: boolean;
+  created_at: string;
+};
+
+export default function Index() {
+  const [title, setTitle] = useState("");
+  const [todos, setTodos] = useState<Todo[]>([]);
+  
+  // Fetch todos on component mount
+  useEffect(() => {
+    fetchTodos();
+  }, []);
+
+  // Fetch all todos
+  const fetchTodos = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("todos")
+        .select("*")
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      if (data) setTodos(data);
+    } catch (error) {
+      console.error("Error fetching todos:", error);
+      Alert.alert("Error", "Failed to fetch todos");
+    }
+  };
+
+  // Add new todo
+  const addTodo = async () => {
+    if (title.trim() === '') return;
+    try {
+      const { data, error } = await supabase
+        .from("todos")
+        .insert([{ title, is_complete: false }])
+        .select();
+
+      if (error) throw error;
+      if (data) {
+        setTodos([...data, ...todos]);
+        setTitle('');
+      }
+    } catch (error) {
+      console.error("Error adding todo:", error);
+      Alert.alert("Error", "Failed to add todo");
+    }
+  };
+
+  // Toggle todo completion status
+  const toggleComplete = async (id: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from("todos")
+        .update({ is_complete: !currentStatus })
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      // Update local state after successful database update
+      setTodos((prevTodos) =>
+        prevTodos.map((todo) =>
+          todo.id === id ? { ...todo, is_complete: !currentStatus } : todo
+        )
+      );
+    } catch (error) {
+      console.error("Error updating todo:", error);
+      Alert.alert("Error", "Failed to update todo");
+    }
+  };
+  
+  // Delete todo
+  const deleteTodo = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from("todos")
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      // Update local state after successful deletion
+      setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
+    } catch (error) {
+      console.error("Error deleting todo:", error);
+      Alert.alert("Error", "Failed to delete todo");
+    }
+  };
+
+  return (
+    <View className="flex-1 bg-white p-5">
+      <Text className="text-2xl font-bold text-center p-2 bg-gray-100 shadow-md mb-4">
+        Todo List
+      </Text>
+
+      <TextInput
+        className="border border-gray-300 rounded-md p-3 mb-2 mx-1"
+        placeholder="Add a new task..."
+        value={title}
+        onChangeText={setTitle}
+      />
+      
+      <TouchableOpacity 
+        onPress={addTodo}
+        className="bg-blue-500 rounded-md p-3 mx-1 mb-4"
+      >
+        <Text className="text-white text-center font-semibold">Add Todo</Text>
+      </TouchableOpacity>
+     
+      <FlatList
+        data={todos}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <View className="flex-row items-center justify-between p-3 border-b border-gray-200">
+            <TouchableOpacity
+              onPress={() => toggleComplete(item.id, item.is_complete)}
+              className="flex-1"
+            >
+              <Text
+                className={`text-base ${
+                  item.is_complete ? 'line-through text-gray-500' : 'text-black'
+                }`}
+              >
+                {item.title}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => deleteTodo(item.id)}
+              className="bg-red-500 px-4 py-2 rounded-md"
+            >
+              <Text className="text-white">Delete</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      />
+    </View>
+  );
+}
