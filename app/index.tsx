@@ -8,6 +8,7 @@ import {
   Text,
   TouchableOpacity,
   Alert,
+  Button,
 } from "react-native";
 
 type Todo = {
@@ -21,6 +22,19 @@ export default function Index() {
   const [title, setTitle] = useState("");
   const [todos, setTodos] = useState<Todo[]>([]);
 
+  const checkSession = async () => {
+    const session = await supabase.auth.getSession();
+
+    if (session) {
+      console.log(session.data.session);
+    }
+  };
+
+  const logout = async () => {
+    const logout = await supabase.auth.signOut();
+    console.log(logout);
+  };
+
   // Fetch todos on component mount
 
   return (
@@ -29,6 +43,12 @@ export default function Index() {
         Sign in:
       </Text>
       <Auth />
+      <View>
+        <Text>Button to check about session</Text>
+        <Button title="Check Session" onPress={checkSession} />
+        <Text>logout</Text>
+        <Button title="Log out " onPress={logout} />
+      </View>
     </View>
   );
 }
